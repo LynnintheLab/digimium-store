@@ -7,9 +7,15 @@ import { Button } from "@/components/ui/button";
 import LogoCloud from "@/components/ui/logo-cloud";
 import { useProductData } from "@/context/product-data-context";
 import { formatMoney, getProductPlans, getProductStatus } from "@/data/products";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { getProductLogo } from "@/lib/product-logos";
 
 export function HomePage() {
+  usePageMeta({
+    title: "Digital subscriptions, simplified",
+    description: "Buy AI tools, streaming, VPN, and creative subscriptions in Myanmar. Simple ordering via Telegram — no payment forms, no hassle.",
+    path: "/",
+  });
   const { products } = useProductData();
   const checkoutSteps = [
     { icon: MousePointerClick, number: "01", title: "Choose a plan", description: "Select a product and duration." },

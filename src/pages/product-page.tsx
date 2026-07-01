@@ -7,6 +7,7 @@ import { PricingCard } from "@/components/ui/pricing-card";
 import { useCart } from "@/context/cart-context";
 import { useProductData } from "@/context/product-data-context";
 import { formatMoney, getProductPlans, getProductStatus, isProductVisible } from "@/data/products";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { productDmUrl } from "@/lib/telegram";
 import type { DurationOption } from "@/types";
 
@@ -19,6 +20,12 @@ export function ProductPage() {
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) ?? plans[0];
   const [selectedDuration, setSelectedDuration] = useState<DurationOption | undefined>(selectedPlan?.durations[0]);
   const { addItem, setIsOpen } = useCart();
+
+  usePageMeta({
+    title: product ? product.name : "Product",
+    description: product ? product.description : undefined,
+    path: `/product/${productId}`,
+  });
 
   useEffect(() => {
     const nextPlans = product ? getProductPlans(product).filter((plan) => (plan.status ?? "available") !== "hidden") : [];

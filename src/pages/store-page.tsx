@@ -7,10 +7,16 @@ import ProductCard from "@/components/ui/cards";
 import { useCart } from "@/context/cart-context";
 import { useProductData } from "@/context/product-data-context";
 import { categories, getFirstPurchasableOption, isProductPurchasable, isProductVisible } from "@/data/products";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { getProductLogo } from "@/lib/product-logos";
 import type { Category, Product } from "@/types";
 
 export function StorePage() {
+  usePageMeta({
+    title: "Store — Browse all subscriptions",
+    description: "Browse AI tools, streaming, VPN, and creative app subscriptions. ChatGPT, Netflix, Canva, and more — delivered fast via Telegram.",
+    path: "/store",
+  });
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get("category");
   const activeCategory = categories.includes(categoryParam as (typeof categories)[number])
