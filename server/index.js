@@ -1,6 +1,8 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import multer from "multer";
 import mysql from "mysql2/promise";
 import fs from "node:fs";
@@ -19,12 +21,39 @@ fs.mkdirSync(uploadsDir, { recursive: true });
 
 const app = express();
 const port = Number(process.env.PORT ?? 3000);
-const adminPin = process.env.ADMIN_PIN || "123456";
+const adminPin = process.env.ADMIN_PIN;
+if (!adminPin || adminPin.length < 12) {
+  console.error("FATAL: ADMIN_PIN env var is required and must be at least 12 characters.");
+  process.exit(1);
+}
 const adminHost = String(process.env.ADMIN_HOST || "").trim().toLowerCase();
 
-app.use(cors({ origin: true, credentials: true }));
+const allowedOrigins = new Set(
+  (process.env.ALLOWED_ORIGINS || "http://localhost:5173,http://localhost:3000")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean),
+);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.has(origin)) callback(null, true);
+    else callback(new Error("CORS: origin not allowed"));
+  },
+  credentials: true,
+}));
+app.use(helmet());
 app.use(express.json({ limit: "1mb" }));
 app.use("/uploads", express.static(uploadsDir));
+
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: "Too many requests. Try again later." },
+});
+app.use("/api/admin/", adminLimiter);
 
 app.use((req, res, next) => {
   const hostname = req.hostname.toLowerCase();
@@ -100,7 +129,7 @@ async function transaction(callback) {
 }
 
 function requireAdmin(req, res, next) {
-  const providedPin = req.header("x-admin-pin") || req.query.pin;
+  const providedPin = req.header("x-admin-pin");
   if (!providedPin || providedPin !== adminPin) {
     res.status(401).json({ ok: false, error: "Admin PIN is required." });
     return;
@@ -115,6 +144,13 @@ function slugify(value) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 80);
+}
+
+function safeUrl(value) {
+  const url = String(value || "").trim();
+  if (!url) return "";
+  if (url.startsWith("https://") || url.startsWith("/uploads/")) return url;
+  return "";
 }
 
 function safeStatus(value, fallback = "available") {
@@ -151,7 +187,7 @@ function normalizeProductPayload(payload, productId) {
     status: safeStatus(payload.status),
     statusNote: String(payload.statusNote || payload.status_note || "").trim(),
     tone: ["blue", "violet", "green", "orange"].includes(payload.tone) ? payload.tone : "blue",
-    logoUrl: String(payload.logoUrl || payload.logo_url || "").trim(),
+    logoUrl: safeUrl(payload.logoUrl || payload.logo_url),
     logoBackground: String(payload.logoBackground || payload.logo_background || "#f6f6f6").trim(),
     promoted: payload.promoted === true || payload.promoted === 1 || payload.promoted === "1",
     promotionLabel: String(payload.promotionLabel || payload.promotion_label || "").trim(),
@@ -172,8 +208,8 @@ function normalizeContactPayload(payload, contactId) {
     title: String(payload.title || id).trim(),
     subtitle: String(payload.subtitle || "").trim(),
     url: String(payload.url || "").trim(),
-    imageUrl: String(payload.imageUrl || payload.image_url || "").trim(),
-    backgroundUrl: String(payload.backgroundUrl || payload.background_url || "").trim(),
+    imageUrl: safeUrl(payload.imageUrl || payload.image_url),
+    backgroundUrl: safeUrl(payload.backgroundUrl || payload.background_url),
     status: safeStatus(payload.status, "available"),
     sortOrder: Number.isFinite(Number(payload.sortOrder ?? payload.sort_order)) ? Number(payload.sortOrder ?? payload.sort_order) : 0,
   };
@@ -430,6 +466,9 @@ async function deleteContact(contactId) {
   return result.affectedRows > 0;
 }
 
+const ALLOWED_IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp"]);
+const ALLOWED_IMAGE_MIMETYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: uploadsDir,
@@ -440,8 +479,12 @@ const upload = multer({
   }),
   limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: (_req, file, callback) => {
-    if (!file.mimetype.startsWith("image/")) callback(new Error("Only image uploads are allowed."));
-    else callback(null, true);
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (!ALLOWED_IMAGE_MIMETYPES.has(file.mimetype) || !ALLOWED_IMAGE_EXTENSIONS.has(ext)) {
+      callback(new Error("Only JPEG, PNG, GIF, and WebP uploads are allowed."));
+    } else {
+      callback(null, true);
+    }
   },
 });
 
@@ -456,11 +499,7 @@ function asyncRoute(handler) {
 }
 
 app.get("/api/health", (_req, res) => {
-  res.json({
-    ok: true,
-    app: "digimium-store",
-    databaseConfigured: hasDatabaseConfig(),
-  });
+  res.json({ ok: true, app: "digimium-store" });
 });
 
 app.get("/api/products", asyncRoute(async (_req, res) => {
@@ -537,9 +576,11 @@ if (fs.existsSync(distDir)) {
 
 app.use((error, _req, res, _next) => {
   const status = error.statusCode || 500;
+  const isUserFacing = status < 500;
+  if (!isUserFacing) console.error("[error]", error.message);
   res.status(status).json({
     ok: false,
-    error: error.message || "Server error.",
+    error: isUserFacing ? (error.message || "Request error.") : "Server error.",
   });
 });
 
