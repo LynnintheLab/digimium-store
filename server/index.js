@@ -38,7 +38,11 @@ const allowedOrigins = new Set(
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.has(origin)) callback(null, true);
-    else callback(new Error("CORS: origin not allowed"));
+    else {
+      const err = new Error("CORS: origin not allowed");
+      err.statusCode = 403;
+      callback(err);
+    }
   },
   credentials: true,
 }));
@@ -481,7 +485,9 @@ const upload = multer({
   fileFilter: (_req, file, callback) => {
     const ext = path.extname(file.originalname).toLowerCase();
     if (!ALLOWED_IMAGE_MIMETYPES.has(file.mimetype) || !ALLOWED_IMAGE_EXTENSIONS.has(ext)) {
-      callback(new Error("Only JPEG, PNG, GIF, and WebP uploads are allowed."));
+      const err = new Error("Only JPEG, PNG, GIF, and WebP uploads are allowed.");
+      err.statusCode = 400;
+      callback(err);
     } else {
       callback(null, true);
     }
@@ -575,6 +581,7 @@ if (fs.existsSync(distDir)) {
 }
 
 app.use((error, _req, res, _next) => {
+  if (error.name === "MulterError") error.statusCode = 400;
   const status = error.statusCode || 500;
   const isUserFacing = status < 500;
   if (!isUserFacing) console.error("[error]", error.message);
