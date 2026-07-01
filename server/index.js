@@ -21,6 +21,7 @@ const uploadsDir = path.join(rootDir, "uploads");
 fs.mkdirSync(uploadsDir, { recursive: true });
 
 const app = express();
+app.set("trust proxy", 1);
 const port = Number(process.env.PORT ?? 3000);
 const adminPin = process.env.ADMIN_PIN;
 if (!adminPin || adminPin.length < 12) {
