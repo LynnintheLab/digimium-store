@@ -1,0 +1,27 @@
+.DS_Store
+
+# dependencies
+node_modules/
+
+# local env
+.env
+.env.local
+.env.*.local
+
+# builds / generated packages
+dist/
+release/
+*.zip
+
+# local runtime uploads
+uploads/*
+!uploads/.gitkeep
+
+# PHP rewrite experiment
+digimium-php-mysql/
+digimium-php-mysql 2/
+
+# logs / cache
+*.log
+.vite/
+.cache/
