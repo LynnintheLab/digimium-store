@@ -1,7 +1,7 @@
 import { formatMoney, getProductPlans } from "@/data/products";
 import type { CartItem, Product } from "@/types";
 
-export const TELEGRAM_USERNAME = "LynnIsHeree";
+export const TELEGRAM_USERNAME = (import.meta.env.VITE_TELEGRAM_USERNAME ?? "").trim().replace(/^@/, "");
 export const TELEGRAM_ADMIN_URL = `https://t.me/${TELEGRAM_USERNAME}`;
 
 export function buildTelegramOrder(items: CartItem[], findProduct: (productId: string) => Product | undefined) {

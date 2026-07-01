@@ -1,6 +1,8 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import multer from "multer";
 import mysql from "mysql2/promise";
 import fs from "node:fs";
@@ -19,12 +21,39 @@ fs.mkdirSync(uploadsDir, { recursive: true });
 
 const app = express();
 const port = Number(process.env.PORT ?? 3000);
-const adminPin = process.env.ADMIN_PIN || "123456";
+const adminPin = process.env.ADMIN_PIN;
+if (!adminPin || adminPin.length < 12) {
+  console.error("FATAL: ADMIN_PIN env var is required and must be at least 12 characters.");
+  process.exit(1);
+}
 const adminHost = String(process.env.ADMIN_HOST || "").trim().toLowerCase();
 
-app.use(cors({ origin: true, credentials: true }));
+const allowedOrigins = new Set(
+  (process.env.ALLOWED_ORIGINS || "http://localhost:5173,http://localhost:3000")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean),
+);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.has(origin)) callback(null, true);
+    else callback(new Error("CORS: origin not allowed"));
+  },
+  credentials: true,
+}));
+app.use(helmet());
 app.use(express.json({ limit: "1mb" }));
 app.use("/uploads", express.static(uploadsDir));
+
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: "Too many requests. Try again later." },
+});
+app.use("/api/admin/", adminLimiter);
 
 app.use((req, res, next) => {
   const hostname = req.hostname.toLowerCase();
@@ -100,7 +129,7 @@ async function transaction(callback) {
 }
 
 function requireAdmin(req, res, next) {
-  const providedPin = req.header("x-admin-pin") || req.query.pin;
+  const providedPin = req.header("x-admin-pin");
   if (!providedPin || providedPin !== adminPin) {
     res.status(401).json({ ok: false, error: "Admin PIN is required." });
     return;
@@ -430,6 +459,9 @@ async function deleteContact(contactId) {
   return result.affectedRows > 0;
 }
 
+const ALLOWED_IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp"]);
+const ALLOWED_IMAGE_MIMETYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: uploadsDir,
@@ -440,8 +472,12 @@ const upload = multer({
   }),
   limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: (_req, file, callback) => {
-    if (!file.mimetype.startsWith("image/")) callback(new Error("Only image uploads are allowed."));
-    else callback(null, true);
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (!ALLOWED_IMAGE_MIMETYPES.has(file.mimetype) || !ALLOWED_IMAGE_EXTENSIONS.has(ext)) {
+      callback(new Error("Only JPEG, PNG, GIF, and WebP uploads are allowed."));
+    } else {
+      callback(null, true);
+    }
   },
 });
 
@@ -537,9 +573,11 @@ if (fs.existsSync(distDir)) {
 
 app.use((error, _req, res, _next) => {
   const status = error.statusCode || 500;
+  const isUserFacing = status < 500;
+  if (!isUserFacing) console.error("[error]", error.message);
   res.status(status).json({
     ok: false,
-    error: error.message || "Server error.",
+    error: isUserFacing ? (error.message || "Request error.") : "Server error.",
   });
 });
 
