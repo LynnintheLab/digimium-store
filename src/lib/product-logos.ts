@@ -51,7 +51,7 @@ const productLogoAliases: Record<string, string[]> = {
   "notion-plus": ["notion"],
   "zoom-pro": ["zoom"],
   "duolingo-super": ["duolingo"],
-  "adobe-creative-cloud": ["untitled-1", "adobe", "creative-cloud"],
+  "adobe-creative-cloud": ["adobe", "creative-cloud"],
 };
 
 function normalize(value: string) {
@@ -64,7 +64,6 @@ function prettyName(path: string) {
     .pop()
     ?.replace(/\.[^.]+$/, "")
     .replace(/ms365/i, "Microsoft 365")
-    .replace(/untitled-1/i, "Adobe Creative Cloud")
     .replace(/[-_]+/g, " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase()) ?? "Digital product";
 }

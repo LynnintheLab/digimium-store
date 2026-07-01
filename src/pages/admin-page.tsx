@@ -1,6 +1,5 @@
 import { Database, ImagePlus, LockKeyhole, Plus, Save, ShieldAlert, Trash2 } from "lucide-react";
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
-import { message } from "antd";
+import { ChangeEvent, FormEvent, useRef, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { contacts as seedContacts, normalizeContact } from "@/data/contacts";
@@ -48,6 +47,14 @@ export function AdminPage() {
   const [activeProductId, setActiveProductId] = useState("");
   const [savingId, setSavingId] = useState("");
   const [tab, setTab] = useState<"products" | "page">("products");
+  const [toast, setToast] = useState<{ text: string; type: "error" | "warning" | "success" } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function showToast(text: string, type: "error" | "warning" | "success") {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ text, type });
+    toastTimer.current = setTimeout(() => setToast(null), 3500);
+  }
 
   const activeProduct = useMemo(
     () => products.find((product) => product.id === activeProductId) ?? products[0],
@@ -72,7 +79,7 @@ export function AdminPage() {
     } catch (error) {
       const reason = error instanceof Error ? error.message : "API is not ready.";
       if (reason.toLowerCase().includes("pin")) {
-        message.error(reason);
+        showToast(reason, "error");
         return;
       }
       setProducts(seedProducts.map(materializePlans));
@@ -154,7 +161,7 @@ export function AdminPage() {
   const deletePlan = (product: Product, planId: string) => {
     const plans = product.plans ?? [];
     if (plans.length <= 1) {
-      message.warning("A product needs at least one plan card.");
+      showToast("A product needs at least one plan card.", "warning");
       return;
     }
     setProductPlans(product.id, plans.filter((plan) => plan.id !== planId));
@@ -188,7 +195,7 @@ export function AdminPage() {
     const plan = product.plans?.find((candidate) => candidate.id === planId);
     if (!plan) return;
     if (plan.durations.length <= 1) {
-      message.warning("A plan needs at least one duration.");
+      showToast("A plan needs at least one duration.", "warning");
       return;
     }
     updatePlan(product, planId, { durations: plan.durations.filter((_, index) => index !== durationIndex) });
@@ -196,7 +203,7 @@ export function AdminPage() {
 
   const saveProduct = async (product: Product) => {
     if (apiMode !== "api") {
-      message.warning("Start the Node API and connect MySQL before saving.");
+      showToast("Start the Node API and connect MySQL before saving.", "warning");
       return;
     }
     setSavingId(product.id);
@@ -210,9 +217,9 @@ export function AdminPage() {
         body: JSON.stringify(payload),
       });
       updateProduct(product.id, materializePlans(data.product));
-      message.success("Product saved.");
+      showToast("Product saved.", "success");
     } catch (error) {
-      message.error(error instanceof Error ? error.message : "Could not save product.");
+      showToast(error instanceof Error ? error.message : "Could not save product.", "error");
     } finally {
       setSavingId("");
     }
@@ -223,20 +230,20 @@ export function AdminPage() {
       try {
         await adminRequest(`/api/admin/products/${product.id}`, pin, { method: "DELETE" });
       } catch (error) {
-        message.error(error instanceof Error ? error.message : "Could not delete product.");
+        showToast(error instanceof Error ? error.message : "Could not delete product.", "error");
         return;
       }
     }
     setProducts((current) => current.filter((candidate) => candidate.id !== product.id));
     setActiveProductId(products.find((candidate) => candidate.id !== product.id)?.id ?? "");
-    message.success(apiMode === "api" ? "Product deleted." : "Product removed from preview.");
+    showToast(apiMode === "api" ? "Product deleted." : "Product removed from preview.", "success");
   };
 
   const uploadLogo = async (product: Product, event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (apiMode !== "api") {
-      message.warning("Start the Node API and connect MySQL before uploading.");
+      showToast("Start the Node API and connect MySQL before uploading.", "warning");
       return;
     }
 
@@ -248,9 +255,9 @@ export function AdminPage() {
         body: formData,
       });
       updateProduct(product.id, { logoUrl: data.url });
-      message.success("Logo uploaded. Save product to keep it.");
+      showToast("Logo uploaded. Save product to keep it.", "success");
     } catch (error) {
-      message.error(error instanceof Error ? error.message : "Could not upload logo.");
+      showToast(error instanceof Error ? error.message : "Could not upload logo.", "error");
     }
   };
 
@@ -258,7 +265,7 @@ export function AdminPage() {
     const file = event.target.files?.[0];
     if (!file) return;
     if (apiMode !== "api") {
-      message.warning("Start the Node API and connect MySQL before uploading.");
+      showToast("Start the Node API and connect MySQL before uploading.", "warning");
       return;
     }
 
@@ -270,9 +277,9 @@ export function AdminPage() {
         body: formData,
       });
       updateContact(contact.id, { [field]: data.url });
-      message.success("Photo uploaded. Save contact to keep it.");
+      showToast("Photo uploaded. Save contact to keep it.", "success");
     } catch (error) {
-      message.error(error instanceof Error ? error.message : "Could not upload photo.");
+      showToast(error instanceof Error ? error.message : "Could not upload photo.", "error");
     }
   };
 
@@ -295,7 +302,7 @@ export function AdminPage() {
 
   const saveContact = async (contact: ContactLink) => {
     if (apiMode !== "api") {
-      message.warning("Start the Node API and connect MySQL before saving.");
+      showToast("Start the Node API and connect MySQL before saving.", "warning");
       return;
     }
     setSavingId(contact.id);
@@ -305,9 +312,9 @@ export function AdminPage() {
         body: JSON.stringify(contact),
       });
       updateContact(contact.id, normalizeContact(data.contact));
-      message.success("Contact saved.");
+      showToast("Contact saved.", "success");
     } catch (error) {
-      message.error(error instanceof Error ? error.message : "Could not save contact.");
+      showToast(error instanceof Error ? error.message : "Could not save contact.", "error");
     } finally {
       setSavingId("");
     }
@@ -318,12 +325,12 @@ export function AdminPage() {
       try {
         await adminRequest(`/api/admin/contacts/${contact.id}`, pin, { method: "DELETE" });
       } catch (error) {
-        message.error(error instanceof Error ? error.message : "Could not delete contact.");
+        showToast(error instanceof Error ? error.message : "Could not delete contact.", "error");
         return;
       }
     }
     setContacts((current) => current.filter((candidate) => candidate.id !== contact.id));
-    message.success(apiMode === "api" ? "Contact deleted." : "Contact removed from preview.");
+    showToast(apiMode === "api" ? "Contact deleted." : "Contact removed from preview.", "success");
   };
 
   if (!isAuthed) {
@@ -338,7 +345,7 @@ export function AdminPage() {
             <input value={pin} onChange={(event) => setPin(event.target.value)} placeholder="Enter admin PIN" type="password" />
           </label>
           <Button size="lg" type="submit">Open admin</Button>
-          <small>Set ADMIN_PIN in your .env file (minimum 12 characters).</small>
+
         </form>
       </main>
     );
@@ -346,6 +353,9 @@ export function AdminPage() {
 
   return (
     <main className="admin-page">
+      {toast && (
+        <div className={`admin-toast admin-toast--${toast.type}`} role="alert">{toast.text}</div>
+      )}
       <header className="admin-topbar">
         <div>
           <p>digimium admin</p>

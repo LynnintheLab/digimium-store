@@ -1,27 +1,40 @@
-# Product
+---
+register: brand
+---
+
+# Digimium Store
 
 ## Register
 
 brand
 
 ## Users
-Digimium customers browsing on mobile phones, often inside Telegram's in-app browser. They want to understand the business, choose digital subscriptions quickly, confirm duration and quantity, then continue the order conversation in Telegram.
 
-## Product Purpose
-Digimium is a digital store for AI tools, streaming, VPN, and creative subscriptions. The site introduces the business on a clean landing page, then sends customers to a separate store page where they can create a Telegram order message from the selected cart. Success means the customer trusts the business, understands the buying flow, and reaches Telegram with the cart details already written.
+**Primary — Burmese mobile consumer.** Opens links from Telegram. Wants clear prices, zero registration walls, and a fast path to ordering. May read Burmese; expects legibility in both languages. Using a phone, often inside Telegram's in-app browser.
 
-## Brand Personality
-Clean, minimal, direct. The experience should feel trustworthy, bright, organized, and easy to use on a phone.
+**Secondary — Digimium admin.** Business owner updating the catalog from phone or laptop. Needs a PIN-protected panel that works without developer help.
+
+## Brand voice
+
+Direct. Trustworthy. Clean without being cold. A small business that knows exactly what it sells and hides nothing. Not corporate, not startup-cute, not loud.
+
+## Product purpose
+
+A digital subscription storefront that converts browsers to Telegram order conversations. No payment forms; the cart becomes a Telegram message. Design builds confidence before the customer opens Telegram.
 
 ## Anti-references
-No payment collection, no address forms, no backend checkout, no cluttered marketplace layout, no dark-heavy theme, and no confusing checkout steps.
 
-## Design Principles
-Introduce the business before asking for purchase intent.
-Make the cart state obvious at all times.
-Use Telegram as the handoff, not as an afterthought.
-Keep the interface readable in Burmese on small screens.
-Make product and duration editing fast on the store page.
+- Busy discount e-commerce (Lazada, Shopee aesthetic) — chaotic, trust-destroying
+- SaaS landing pages with hero metrics and gradient text — wrong audience, wrong mood
+- Generic bootstrap digital product store templates — invisible
+- Neon/dark crypto-adjacent stores — wrong tone for Myanmar mainstream
 
-## Accessibility & Inclusion
-Mobile-first layout with large touch targets, keyboard focus states, reduced motion support, readable contrast on white surfaces, and semantic buttons and labels for cart controls.
+## Tone
+
+Calm confidence. Sparse. Every element earns its space. Monospace type signals precision and honesty about pricing.
+
+## Strategic principles
+
+- Trust before transaction: the store must feel safe before a customer opens Telegram
+- Mobile-first always: assume 390px, Telegram browser, one-handed use
+- Clarity over polish: correct information legibly displayed beats beautiful information that is ambiguous

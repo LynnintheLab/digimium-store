@@ -1,6 +1,4 @@
-import { AppstoreOutlined, HomeOutlined, MailOutlined, ShoppingCartOutlined } from "@ant-design/icons";
-import { Badge, Menu } from "antd";
-import type { MenuProps } from "antd";
+import { House, LayoutGrid, Mail, ShoppingCart } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 interface MenuOneProps {
@@ -8,22 +6,21 @@ interface MenuOneProps {
   onCartOpen: () => void;
 }
 
-const items: Required<MenuProps>["items"] = [
-  { label: "Home", key: "/", icon: <HomeOutlined /> },
-  { label: "Store", key: "/store", icon: <AppstoreOutlined /> },
-  { label: "Contact us", key: "/contact", icon: <MailOutlined /> },
+const navLinks = [
+  { label: "Home", key: "/", icon: <House size={14} /> },
+  { label: "Store", key: "/store", icon: <LayoutGrid size={14} /> },
+  { label: "Contact us", key: "/contact", icon: <Mail size={14} /> },
 ];
 
 export default function MenuOne({ cartCount, onCartOpen }: MenuOneProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const selectedKey = location.pathname.startsWith("/store") || location.pathname.startsWith("/product")
-    ? "/store"
-    : location.pathname.startsWith("/contact")
-      ? "/contact"
-      : "/";
-
-  const onClick: MenuProps["onClick"] = ({ key }) => navigate(key);
+  const selectedKey =
+    location.pathname.startsWith("/store") || location.pathname.startsWith("/product")
+      ? "/store"
+      : location.pathname.startsWith("/contact")
+        ? "/contact"
+        : "/";
 
   return (
     <header className="site-header">
@@ -35,19 +32,34 @@ export default function MenuOne({ cartCount, onCartOpen }: MenuOneProps) {
         </button>
 
         <div className="header-navigation">
-          <Menu
-            className="digimium-menu"
-            onClick={onClick}
-            selectedKeys={[selectedKey]}
-            mode="horizontal"
-            items={items}
-          />
-          <Badge count={cartCount} size="small" offset={[-3, 3]} showZero={false}>
-            <button className="cart-menu-button" type="button" onClick={onCartOpen} aria-label={`Open cart, ${cartCount} items`}>
-              <ShoppingCartOutlined />
+          <nav className="digimium-nav" aria-label="Main navigation">
+            {navLinks.map(({ label, key, icon }) => (
+              <button
+                key={key}
+                type="button"
+                className={`digimium-nav-item${selectedKey === key ? " is-active" : ""}`}
+                onClick={() => navigate(key)}
+                aria-current={selectedKey === key ? "page" : undefined}
+              >
+                {icon && <span className="digimium-nav-icon" aria-hidden="true">{icon}</span>}
+                <span className="digimium-nav-label">{label}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="cart-badge-wrap">
+            <button
+              className="cart-menu-button"
+              type="button"
+              onClick={onCartOpen}
+              aria-label={`Open cart, ${cartCount} items`}
+            >
+              <ShoppingCart size={16} aria-hidden="true" />
               <span>Cart</span>
             </button>
-          </Badge>
+            {cartCount > 0 && (
+              <span className="cart-badge" aria-hidden="true">{cartCount}</span>
+            )}
+          </div>
         </div>
       </div>
     </header>
