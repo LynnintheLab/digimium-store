@@ -146,6 +146,13 @@ function slugify(value) {
     .slice(0, 80);
 }
 
+function safeUrl(value) {
+  const url = String(value || "").trim();
+  if (!url) return "";
+  if (url.startsWith("https://") || url.startsWith("/uploads/")) return url;
+  return "";
+}
+
 function safeStatus(value, fallback = "available") {
   return ["available", "out-of-stock", "dm-for-price", "hidden"].includes(value) ? value : fallback;
 }
@@ -180,7 +187,7 @@ function normalizeProductPayload(payload, productId) {
     status: safeStatus(payload.status),
     statusNote: String(payload.statusNote || payload.status_note || "").trim(),
     tone: ["blue", "violet", "green", "orange"].includes(payload.tone) ? payload.tone : "blue",
-    logoUrl: String(payload.logoUrl || payload.logo_url || "").trim(),
+    logoUrl: safeUrl(payload.logoUrl || payload.logo_url),
     logoBackground: String(payload.logoBackground || payload.logo_background || "#f6f6f6").trim(),
     promoted: payload.promoted === true || payload.promoted === 1 || payload.promoted === "1",
     promotionLabel: String(payload.promotionLabel || payload.promotion_label || "").trim(),
@@ -201,8 +208,8 @@ function normalizeContactPayload(payload, contactId) {
     title: String(payload.title || id).trim(),
     subtitle: String(payload.subtitle || "").trim(),
     url: String(payload.url || "").trim(),
-    imageUrl: String(payload.imageUrl || payload.image_url || "").trim(),
-    backgroundUrl: String(payload.backgroundUrl || payload.background_url || "").trim(),
+    imageUrl: safeUrl(payload.imageUrl || payload.image_url),
+    backgroundUrl: safeUrl(payload.backgroundUrl || payload.background_url),
     status: safeStatus(payload.status, "available"),
     sortOrder: Number.isFinite(Number(payload.sortOrder ?? payload.sort_order)) ? Number(payload.sortOrder ?? payload.sort_order) : 0,
   };
@@ -492,11 +499,7 @@ function asyncRoute(handler) {
 }
 
 app.get("/api/health", (_req, res) => {
-  res.json({
-    ok: true,
-    app: "digimium-store",
-    databaseConfigured: hasDatabaseConfig(),
-  });
+  res.json({ ok: true, app: "digimium-store" });
 });
 
 app.get("/api/products", asyncRoute(async (_req, res) => {
