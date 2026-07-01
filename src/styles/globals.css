@@ -347,44 +347,15 @@ textarea:focus-visible {
   isolation: isolate;
 }
 
-.page-dot-pattern {
+.page-canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0;
   z-index: -1;
-  width: calc(100% / var(--dot-density-scale, 0.84));
-  height: calc(100% / var(--dot-density-scale, 0.84));
-  color: oklch(0.34 0 0 / 0.38);
-  transform: scale(var(--dot-density-scale, 0.84));
-  transform-origin: top left;
-}
-
-.wave-dot-pattern {
-  fill: currentColor;
-}
-
-.wave-dot {
-  opacity: var(--dot-opacity);
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: dot-wave var(--dot-wave-duration, 8s) ease-in-out infinite;
-  animation-delay: var(--dot-wave-delay);
-  will-change: transform, opacity;
-}
-
-@keyframes dot-wave {
-  0%,
-  100% {
-    opacity: calc(var(--dot-opacity) * 0.7);
-    transform: translate3d(0, 0, 0) scale(0.82);
-  }
-
-  45% {
-    opacity: calc(var(--dot-opacity) * 1.85);
-    transform: translate3d(0, -7px, 0) scale(1.18);
-  }
-
-  72% {
-    opacity: var(--dot-opacity);
-    transform: translate3d(0, 3px, 0) scale(0.94);
-  }
+  background-image: radial-gradient(circle, oklch(0.34 0 0 / 0.38) 0.65px, transparent 0.65px);
+  background-size: 24px 24px;
+  mask-image: linear-gradient(to bottom, black, transparent 82%);
+  pointer-events: none;
 }
 
 .page-canvas-content {
