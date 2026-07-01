@@ -352,7 +352,7 @@ export function AdminPage() {
             <input value={pin} onChange={(event) => setPin(event.target.value)} placeholder="Enter admin PIN" type="password" />
           </label>
           <Button size="lg" type="submit">Open admin</Button>
-          <small>Default local PIN is 123456. Change ADMIN_PIN before launch.</small>
+          <small>Set ADMIN_PIN in your .env file (minimum 12 characters).</small>
         </form>
       </main>
     );
