@@ -48,9 +48,7 @@ export function HomePage() {
               <Button asChild size="lg">
                 <Link to="/store">Explore store <ArrowRight aria-hidden="true" /></Link>
               </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/contact">Contact us</Link>
-              </Button>
+              <Link to="/contact" className="landing-cta-secondary">Contact us</Link>
             </nav>
           </div>
 

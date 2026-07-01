@@ -303,4 +303,19 @@ INSERT INTO product_feature_groups (product_id, title, sort_order) VALUES ('duol
 SET @fg = LAST_INSERT_ID();
 INSERT INTO product_features (group_id, item, sort_order) VALUES (@fg,'Telegram order support',1),(@fg,'Clear price before confirmation',2),(@fg,'Simple digital delivery',3);
 
+-- ── Contacts ─────────────────────────────────────────────────────────────────
+INSERT INTO contacts (id, type, title, subtitle, url, image_url, background_url, status, sort_order)
+VALUES
+  ('facebook-digimium',   'facebook',         'digimium.',         'Facebook page',        'https://www.facebook.com/profile.php?id=61586643983894&locale=th_TH', '', '', 'available', 1),
+  ('facebook-digimium-2', 'facebook',         'digimium. 2.0',     'Backup Facebook page', 'https://www.facebook.com/profile.php?id=61561290184783&locale=th_TH', '', '', 'available', 2),
+  ('telegram-channel',    'telegram-channel', 'Telegram channel',  '@buyheredigimium',     'https://t.me/buyheredigimium', '', '', 'available', 3),
+  ('telegram-admin',      'telegram-admin',   'Telegram admin',    '@LynnIsHeree',         'https://t.me/LynnIsHeree',     '', '', 'available', 4)
+ON DUPLICATE KEY UPDATE
+  type       = VALUES(type),
+  title      = VALUES(title),
+  subtitle   = VALUES(subtitle),
+  url        = VALUES(url),
+  status     = VALUES(status),
+  sort_order = VALUES(sort_order);
+
 SET FOREIGN_KEY_CHECKS = 1;
