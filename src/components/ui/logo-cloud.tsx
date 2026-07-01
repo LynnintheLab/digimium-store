@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 
-import { rotatingProductLogos } from "@/lib/product-logos";
+import { productLogos } from "@/lib/product-logos";
 import { cn } from "@/lib/utils";
 
 type InfiniteSliderProps = {
@@ -29,7 +29,7 @@ function InfiniteSlider({ children, gap = 84, duration = 42, reverse = false, cl
 }
 
 export default function LogoCloud() {
-  const logos = rotatingProductLogos.map((logo) => (
+  const logos = productLogos.map((logo) => (
     <span className="product-wordmark" key={logo.key} aria-label={logo.name}>
       <img src={logo.src} alt="" loading="lazy" />
     </span>

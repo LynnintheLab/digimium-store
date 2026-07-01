@@ -3,8 +3,6 @@ import { Check } from "lucide-react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardHeader } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { formatMoney } from "@/data/products";
 import { cn } from "@/lib/utils";
 import type { DurationOption, ProductFeatureGroup, ProductStatus } from "@/types";
@@ -74,16 +72,16 @@ export function PricingCard({
       animate={visible ? "visible" : "hidden"}
       variants={{ hidden: { opacity: 1 }, visible: { opacity: 1, transition: { staggerChildren: reduceMotion ? 0 : 0.08 } } }}
     >
-      <Card className="pricing-card">
+      <div className="border bg-card text-card-foreground pricing-card">
         <div className="pricing-card-layout">
           <motion.div className="pricing-card-summary" variants={itemVariants}>
             <div>
-              <CardHeader className="p-0">
+              <div className="flex flex-col space-y-1.5 p-0">
                 {statusLabel && <span className={cn("pricing-status", `pricing-status--${status}`)}>{statusLabel}</span>}
                 {planName && <span className="pricing-plan-name">{planName}</span>}
                 <h1 className="pricing-title">{title}</h1>
-                <CardDescription>{description}</CardDescription>
-              </CardHeader>
+                <p className="text-sm text-muted-foreground">{description}</p>
+              </div>
 
               <fieldset className="duration-options">
                 <legend>Choose duration</legend>
@@ -117,7 +115,7 @@ export function PricingCard({
             )}
           </motion.div>
 
-          <Separator className="pricing-mobile-separator" />
+          <hr className="shrink-0 bg-border h-px w-full pricing-mobile-separator" />
 
           <motion.div className="pricing-features" variants={itemVariants}>
             {features.map((feature, featureIndex) => (
@@ -131,12 +129,12 @@ export function PricingCard({
                     </motion.li>
                   ))}
                 </ul>
-                {featureIndex < features.length - 1 && <Separator className="my-6" />}
+                {featureIndex < features.length - 1 && <hr className="shrink-0 bg-border h-px w-full my-6" />}
               </div>
             ))}
           </motion.div>
         </div>
-      </Card>
+      </div>
     </motion.section>
   );
 }

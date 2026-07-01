@@ -2,6 +2,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import rateLimit from "express-rate-limit";
+import { fileTypeFromFile } from "file-type";
 import helmet from "helmet";
 import multer from "multer";
 import mysql from "mysql2/promise";
@@ -49,6 +50,15 @@ app.use(cors({
 app.use(helmet());
 app.use(express.json({ limit: "1mb" }));
 app.use("/uploads", express.static(uploadsDir));
+
+const publicLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: "Too many requests. Try again later." },
+});
+app.use("/api/", publicLimiter);
 
 const adminLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -211,7 +221,7 @@ function normalizeContactPayload(payload, contactId) {
     type: String(payload.type || "telegram").trim(),
     title: String(payload.title || id).trim(),
     subtitle: String(payload.subtitle || "").trim(),
-    url: String(payload.url || "").trim(),
+    url: safeUrl(payload.url),
     imageUrl: safeUrl(payload.imageUrl || payload.image_url),
     backgroundUrl: safeUrl(payload.backgroundUrl || payload.background_url),
     status: safeStatus(payload.status, "available"),
@@ -561,13 +571,19 @@ app.delete("/api/admin/contacts/:id", requireAdmin, asyncRoute(async (req, res) 
   res.json({ ok: true, deleted: await deleteContact(req.params.id) });
 }));
 
-app.post("/api/admin/uploads", requireAdmin, upload.single("file"), (req, res) => {
+app.post("/api/admin/uploads", requireAdmin, upload.single("file"), asyncRoute(async (req, res) => {
   if (!req.file) {
     res.status(400).json({ ok: false, error: "Upload an image file." });
     return;
   }
+  const detected = await fileTypeFromFile(req.file.path);
+  if (!detected || !ALLOWED_IMAGE_MIMETYPES.has(detected.mime)) {
+    fs.unlink(req.file.path, () => {});
+    res.status(400).json({ ok: false, error: "Only JPEG, PNG, GIF, and WebP uploads are allowed." });
+    return;
+  }
   res.status(201).json({ ok: true, url: `/uploads/${req.file.filename}` });
-});
+}));
 
 if (fs.existsSync(distDir)) {
   app.use(express.static(distDir));

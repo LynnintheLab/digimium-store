@@ -11,7 +11,7 @@ const tunnelServer = {
   host: "0.0.0.0",
   port: devPort,
   strictPort: true,
-  allowedHosts: true as const,
+  allowedHosts: ["localhost", ".trycloudflare.com"] as string[],
   proxy: {
     "/api": "http://localhost:3000",
     "/uploads": "http://localhost:3000",

@@ -1634,7 +1634,7 @@ textarea:focus-visible {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(360px, 0.72fr);
   gap: clamp(50px, 10vw, 132px);
-  padding-block: clamp(70px, 10vw, 130px);
+  padding-block: clamp(32px, 5vw, 64px);
 }
 
 .contact-copy > span {
@@ -1732,9 +1732,15 @@ textarea:focus-visible {
   line-height: 1.4;
 }
 
-.contact-link-card svg {
+.contact-link-card > svg {
   width: 15px;
   height: 15px;
+}
+
+.contact-link-card > span img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
 }
 
 .contact-form {
@@ -1962,6 +1968,36 @@ textarea:focus-visible {
   margin: 22px auto 0;
   border-color: oklch(0.8 0.08 80);
   background: oklch(0.98 0.04 85);
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 0;
+  max-width: 1360px;
+  margin: 22px auto 0;
+  border: 1px solid var(--border);
+  width: fit-content;
+}
+
+.admin-tabs button {
+  padding: 10px 24px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: white;
+  color: oklch(0.5 0 0);
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.admin-tabs button + button {
+  border-left: 1px solid var(--border);
+}
+
+.admin-tabs button.is-active {
+  background: oklch(0.1 0 0);
+  color: white;
 }
 
 .admin-workspace {
@@ -2343,19 +2379,82 @@ textarea:focus-visible {
   background: white;
 }
 
-.admin-contact-card > div {
+.admin-contact-actions {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
+  border-top: 1px solid var(--border);
+  margin: 4px -14px -14px;
+  padding: 10px 14px 12px;
+  background: oklch(0.987 0 0);
 }
 
-.admin-contact-card button {
-  gap: 7px;
+.admin-contact-uploads,
+.admin-contact-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.admin-contact-card button svg {
-  width: 14px;
-  height: 14px;
+.admin-contact-actions .admin-contact-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: oklch(0.48 0 0);
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease;
+  white-space: nowrap;
+  position: relative;
+}
+
+.admin-contact-actions .admin-contact-upload-btn:hover {
+  border-color: oklch(0.6 0 0);
+  color: var(--foreground);
+}
+
+.admin-contact-actions .admin-contact-upload-btn svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.admin-contact-actions .admin-contact-upload-btn input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-contact-primary .ui-button {
+  height: 32px;
+  gap: 6px;
+  font-size: 0.72rem;
+  padding-inline: 10px;
+}
+
+.admin-contact-primary .ui-button svg {
+  width: 13px;
+  height: 13px;
+}
+
+.admin-contact-delete {
+  color: oklch(0.5 0.12 27) !important;
+  border-color: oklch(0.82 0.04 27) !important;
+}
+
+.admin-contact-delete:hover {
+  background: oklch(0.97 0.02 27) !important;
+  border-color: oklch(0.65 0.15 27) !important;
+  color: oklch(0.42 0.18 27) !important;
 }
 
 .site-footer {

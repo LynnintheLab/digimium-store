@@ -52,7 +52,6 @@ const productLogoAliases: Record<string, string[]> = {
   "zoom-pro": ["zoom"],
   "duolingo-super": ["duolingo"],
   "adobe-creative-cloud": ["untitled-1", "adobe", "creative-cloud"],
-  surfshark: ["surfshark"],
 };
 
 function normalize(value: string) {
@@ -80,8 +79,6 @@ export const productLogos: ProductLogo[] = Object.entries(logoModules)
     const bIndex = preferredOrder.indexOf(b.key);
     return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex) || a.name.localeCompare(b.name);
   });
-
-export const rotatingProductLogos = productLogos.filter((logo) => !logo.key.includes("surfshark"));
 
 export function getProductLogo(product: Pick<Product, "id" | "name" | "logoUrl">) {
   if (product.logoUrl) {

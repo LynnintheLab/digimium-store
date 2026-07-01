@@ -1,15 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-import { contacts as fallbackContacts } from "@/data/contacts";
+import { contacts as fallbackContacts, normalizeContact } from "@/data/contacts";
 import { products as fallbackProducts } from "@/data/products";
 import type { ContactLink, Product, ProductPlan } from "@/types";
-
-type DataSource = "api" | "fallback";
 
 interface ProductDataContextValue {
   products: Product[];
   contacts: ContactLink[];
-  source: DataSource;
   isLoading: boolean;
   findProduct: (productId: string) => Product | undefined;
 }
@@ -36,27 +33,18 @@ function normalizeProduct(product: Product): Product {
   };
 }
 
-function normalizeContact(contact: ContactLink & { image_url?: string; background_url?: string; sort_order?: number }): ContactLink {
-  return {
-    ...contact,
-    imageUrl: contact.imageUrl || contact.image_url || "",
-    backgroundUrl: contact.backgroundUrl || contact.background_url || "",
-    sortOrder: contact.sortOrder ?? contact.sort_order ?? 0,
-  };
-}
-
 async function fetchJson<T>(url: string) {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`${url} returned ${response.status}`);
   return response.json() as Promise<T>;
 }
 
+const shouldUseApi = import.meta.env.PROD || import.meta.env.VITE_USE_API === "1";
+
 export function ProductDataProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>(() => fallbackProducts.map(normalizeProduct));
   const [contacts, setContacts] = useState<ContactLink[]>(fallbackContacts);
-  const [source, setSource] = useState<DataSource>("fallback");
   const [isLoading, setIsLoading] = useState(true);
-  const shouldUseApi = import.meta.env.PROD || import.meta.env.VITE_USE_API === "1";
 
   useEffect(() => {
     let isMounted = true;
@@ -76,12 +64,10 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
         if (!isMounted) return;
         setProducts(productData.products.map(normalizeProduct));
         setContacts(contactData.contacts.map(normalizeContact));
-        setSource("api");
       } catch {
         if (!isMounted) return;
         setProducts(fallbackProducts.map(normalizeProduct));
         setContacts(fallbackContacts);
-        setSource("fallback");
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -91,15 +77,14 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [shouldUseApi]);
+  }, []);
 
   const value = useMemo<ProductDataContextValue>(() => ({
     products,
     contacts,
-    source,
     isLoading,
     findProduct: (productId: string) => products.find((product) => product.id === productId),
-  }), [contacts, isLoading, products, source]);
+  }), [contacts, isLoading, products]);
 
   return <ProductDataContext.Provider value={value}>{children}</ProductDataContext.Provider>;
 }

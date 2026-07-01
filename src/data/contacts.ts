@@ -1,5 +1,20 @@
 import type { ContactLink } from "@/types";
 
+export type ApiContact = ContactLink & {
+  image_url?: string;
+  background_url?: string;
+  sort_order?: number;
+};
+
+export function normalizeContact(contact: ApiContact): ContactLink {
+  return {
+    ...contact,
+    imageUrl: contact.imageUrl || contact.image_url || "",
+    backgroundUrl: contact.backgroundUrl || contact.background_url || "",
+    sortOrder: contact.sortOrder ?? contact.sort_order ?? 0,
+  };
+}
+
 export const contacts: ContactLink[] = [
   {
     id: "facebook-digimium",

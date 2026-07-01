@@ -40,7 +40,7 @@ export function ContactPage() {
           <div className="contact-link-grid" aria-label="Official Digimium links">
             {contacts.map((contact) => (
               <a className="contact-link-card" href={contact.url} key={contact.id} target="_blank" rel="noreferrer">
-                <span>{contact.type.includes("telegram") ? "TG" : "FB"}</span>
+                <span><img src="/digimium-logo.png" alt="" /></span>
                 <div>
                   <strong>{contact.title}</strong>
                   <small>{contact.subtitle}</small>

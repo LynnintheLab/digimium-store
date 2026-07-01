@@ -3,17 +3,11 @@ import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 import { message } from "antd";
 
 import { Button } from "@/components/ui/button";
-import { contacts as seedContacts } from "@/data/contacts";
+import { contacts as seedContacts, normalizeContact } from "@/data/contacts";
 import { products as seedProducts } from "@/data/products";
 import type { ContactLink, DurationOption, Product, ProductPlan, ProductStatus } from "@/types";
 
 const statuses: ProductStatus[] = ["available", "out-of-stock", "dm-for-price", "hidden"];
-
-type ApiContact = ContactLink & {
-  image_url?: string;
-  background_url?: string;
-  sort_order?: number;
-};
 
 async function adminRequest<T>(path: string, pin: string, init: RequestInit = {}) {
   const response = await fetch(path, {
@@ -28,15 +22,6 @@ async function adminRequest<T>(path: string, pin: string, init: RequestInit = {}
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || "Admin request failed.");
   return data as T;
-}
-
-function normalizeContact(contact: ApiContact): ContactLink {
-  return {
-    ...contact,
-    imageUrl: String(contact.imageUrl || contact.image_url || ""),
-    backgroundUrl: String(contact.backgroundUrl || contact.background_url || ""),
-    sortOrder: Number(contact.sortOrder ?? contact.sort_order ?? 0),
-  };
 }
 
 function materializePlans(product: Product): Product {
@@ -62,6 +47,7 @@ export function AdminPage() {
   const [notice, setNotice] = useState("");
   const [activeProductId, setActiveProductId] = useState("");
   const [savingId, setSavingId] = useState("");
+  const [tab, setTab] = useState<"products" | "page">("products");
 
   const activeProduct = useMemo(
     () => products.find((product) => product.id === activeProductId) ?? products[0],
@@ -378,7 +364,12 @@ export function AdminPage() {
         </div>
       )}
 
-      <section className="admin-workspace">
+      <div className="admin-tabs">
+        <button className={tab === "products" ? "is-active" : ""} onClick={() => setTab("products")} type="button">Products</button>
+        <button className={tab === "page" ? "is-active" : ""} onClick={() => setTab("page")} type="button">Page</button>
+      </div>
+
+      {tab === "products" && <section className="admin-workspace">
         <aside className="admin-product-list" aria-label="Products">
           <div>
             <h2>Products</h2>
@@ -547,9 +538,9 @@ export function AdminPage() {
             </section>
           </section>
         )}
-      </section>
+      </section>}
 
-      <section className="admin-contact-manager">
+      {tab === "page" && <section className="admin-contact-manager">
         <div className="admin-editor-head">
           <div>
             <span>Contact us</span>
@@ -565,30 +556,34 @@ export function AdminPage() {
               <label>Link<input value={contact.url} onChange={(event) => updateContact(contact.id, { url: event.target.value })} /></label>
               <label>Profile photo URL<input value={contact.imageUrl ?? ""} onChange={(event) => updateContact(contact.id, { imageUrl: event.target.value })} /></label>
               <label>Cover photo URL<input value={contact.backgroundUrl ?? ""} onChange={(event) => updateContact(contact.id, { backgroundUrl: event.target.value })} /></label>
-              <div>
-                <label className="admin-upload-button admin-upload-button--small">
-                  <ImagePlus aria-hidden="true" />
-                  Profile
-                  <input accept="image/*" onChange={(event) => uploadContactImage(contact, event, "imageUrl")} type="file" />
-                </label>
-                <label className="admin-upload-button admin-upload-button--small">
-                  <ImagePlus aria-hidden="true" />
-                  Cover
-                  <input accept="image/*" onChange={(event) => uploadContactImage(contact, event, "backgroundUrl")} type="file" />
-                </label>
-                <Button onClick={() => saveContact(contact)} disabled={savingId === contact.id} size="sm">
-                  <Save aria-hidden="true" />
-                  Save
-                </Button>
-                <Button onClick={() => deleteContact(contact)} size="sm" variant="outline">
-                  <Trash2 aria-hidden="true" />
-                  Delete
-                </Button>
+              <div className="admin-contact-actions">
+                <div className="admin-contact-uploads">
+                  <label className="admin-contact-upload-btn">
+                    <ImagePlus aria-hidden="true" />
+                    Profile
+                    <input accept="image/*" onChange={(event) => uploadContactImage(contact, event, "imageUrl")} type="file" />
+                  </label>
+                  <label className="admin-contact-upload-btn">
+                    <ImagePlus aria-hidden="true" />
+                    Cover
+                    <input accept="image/*" onChange={(event) => uploadContactImage(contact, event, "backgroundUrl")} type="file" />
+                  </label>
+                </div>
+                <div className="admin-contact-primary">
+                  <Button onClick={() => saveContact(contact)} disabled={savingId === contact.id} size="sm">
+                    <Save aria-hidden="true" />
+                    {savingId === contact.id ? "Saving" : "Save"}
+                  </Button>
+                  <Button onClick={() => deleteContact(contact)} size="sm" variant="outline" className="admin-contact-delete">
+                    <Trash2 aria-hidden="true" />
+                    Delete
+                  </Button>
+                </div>
               </div>
             </article>
           ))}
         </div>
-      </section>
+      </section>}
     </main>
   );
 }
