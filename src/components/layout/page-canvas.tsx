@@ -12,7 +12,6 @@ export function PageCanvas({ children, className }: PageCanvasProps) {
   return (
     <div className={cn("page-canvas", className)}>
       <DotPattern
-        animated
         cy={1}
         cr={0.65}
         cx={1}

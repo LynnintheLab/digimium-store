@@ -350,10 +350,6 @@ export const products: Product[] = [
 
 export const categories = ["All", "AI Tools", "Streaming", "VPN", "Creative", "Productivity", "Learning"] as const;
 
-export function findProduct(productId: string) {
-  return products.find((product) => product.id === productId);
-}
-
 export function getProductStatus(product: Product) {
   return product.status ?? "available";
 }
