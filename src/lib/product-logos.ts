@@ -30,7 +30,6 @@ const preferredOrder = [
   "notion",
   "zoom",
   "duolingo",
-  "untitled-1",
 ];
 
 const productLogoAliases: Record<string, string[]> = {
